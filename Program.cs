@@ -16,4 +16,22 @@ app.MapGet("/api/mygames/steam", () => myGames.Where(myGame => myGame.Platform =
 
 app.MapGet("/api/mygames/{id}", (Guid id) => myGames.FirstOrDefault(myGame => myGame.Id == id));
 
+app.MapPost("/api/mygames", (OwnedGame newGame) =>
+{
+    myGames.Add(newGame);
+
+    return newGame;
+});
+
+app.MapDelete("/api/mygames/{id}", (Guid id) =>
+{
+    OwnedGame? gameToDelete = myGames.FirstOrDefault(myGame => myGame.Id == id);
+    if (gameToDelete == null)
+        return Results.NotFound();
+
+    myGames.Remove(gameToDelete);
+
+    return Results.Ok();
+});
+
 app.Run();

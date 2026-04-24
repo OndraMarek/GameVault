@@ -1,0 +1,10 @@
+POST https://localhost:7154/api/mygames
+Content-Type: application/json
+
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "igdbId": 999,
+  "title": "Cyberpunk 2077",
+  "platform": 0,
+  "playtimeHours": 120
+}
