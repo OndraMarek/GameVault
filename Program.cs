@@ -1,5 +1,6 @@
 using GameVault.Data;
 using GameVault.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,25 +14,25 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
 }
 
-app.MapGet("/api/mygames", (GameVaultContext db) =>
+app.MapGet("/api/mygames", async (GameVaultContext db) =>
 {
-    return db.Games.ToList();
+    return await db.Games.ToListAsync();
 });
 
-app.MapGet("/api/mygames/{id}", (GameVaultContext db, Guid id) =>
+app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id) =>
 {
-    return db.Games.FirstOrDefault(myGame => myGame.Id == id);
+    return await db.Games.FirstOrDefaultAsync(myGame => myGame.Id == id);
 });
 
-app.MapPost("/api/mygames", (OwnedGame newGame, GameVaultContext db) =>
+app.MapPost("/api/mygames", async (OwnedGame newGame, GameVaultContext db) =>
 {
     db.Games.Add(newGame);
-    db.SaveChanges();
+    await db.SaveChangesAsync();
 
     return Results.Ok(newGame);
 });
 
-app.MapDelete("/api/mygames/{id}", (Guid id, GameVaultContext db) =>
+app.MapDelete("/api/mygames/{id}", async (Guid id, GameVaultContext db) =>
 {
     OwnedGame? gameToDelete = db.Games.FirstOrDefault(myGame => myGame.Id == id);
     if (gameToDelete == null)
@@ -39,12 +40,12 @@ app.MapDelete("/api/mygames/{id}", (Guid id, GameVaultContext db) =>
 
     db.Games.Remove(gameToDelete);
 
-    db.SaveChanges();
+    await db.SaveChangesAsync();
 
     return Results.Ok();
 });
 
-app.MapPut("/api/mygames/{id}", (Guid id, OwnedGame updatedGame, GameVaultContext db) =>
+app.MapPut("/api/mygames/{id}", async (Guid id, OwnedGame updatedGame, GameVaultContext db) =>
 {
     if (id != updatedGame.Id)
         return Results.BadRequest();
@@ -57,7 +58,7 @@ app.MapPut("/api/mygames/{id}", (Guid id, OwnedGame updatedGame, GameVaultContex
     gameToUpdate.Title = updatedGame.Title;
     gameToUpdate.Platform = updatedGame.Platform;
 
-    db.SaveChanges();
+    await db.SaveChangesAsync();
 
     return Results.Ok();
 });
