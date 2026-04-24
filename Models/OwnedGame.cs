@@ -12,10 +12,11 @@ public enum GamingPlatform
     Other
 }
 
-public record OwnedGame(
-    Guid Id,
-    int IgdbId,
-    string Title,
-    GamingPlatform Platform,
-    int PlaytimeHours
-);
+public class OwnedGame
+{
+    public Guid Id { get; set; }
+    public int IgdbId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public GamingPlatform Platform { get; set; }
+    public int PlaytimeHours { get; set; }
+}
