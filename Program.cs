@@ -34,4 +34,19 @@ app.MapDelete("/api/mygames/{id}", (Guid id) =>
     return Results.Ok();
 });
 
+app.MapPut("/api/mygames/{id}", (Guid id, OwnedGame updatedGame) =>
+{
+    if (id != updatedGame.Id)
+        return Results.BadRequest();
+
+    OwnedGame? gameToUpdate = myGames.FirstOrDefault(myGame => myGame.Id == id);
+    if (gameToUpdate == null)
+        return Results.NotFound();
+
+    myGames.Remove(gameToUpdate);
+    myGames.Add(updatedGame);
+
+    return Results.Ok(updatedGame);
+});
+
 app.Run();
