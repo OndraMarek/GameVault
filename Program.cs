@@ -50,12 +50,23 @@ app.MapGet("/api/search/{title}", async (string title, IHttpClientFactory factor
     return Results.Ok(result?.Results);
 });
 
-app.MapPost("/api/mygames", async (OwnedGame newGame, GameVaultContext db) =>
+app.MapPost("/api/mygames", async (CreateGameDto dto, GameVaultContext db) =>
 {
+    OwnedGame newGame = new()
+    {
+        Id = Guid.NewGuid(),
+        RawgId = dto.RawgId,
+        Title = dto.Title,
+        Platform = dto.Platform,
+        PlaytimeHours = dto.PlaytimeHours
+    };
+
     db.Games.Add(newGame);
     await db.SaveChangesAsync();
 
-    return Results.Ok(newGame);
+    var responseDto = new GameDetailDto(newGame.Title, newGame.Platform.ToString(), newGame.PlaytimeHours);
+
+    return Results.Ok(responseDto);
 });
 
 app.MapDelete("/api/mygames/{id}", async (Guid id, GameVaultContext db) =>
@@ -71,19 +82,17 @@ app.MapDelete("/api/mygames/{id}", async (Guid id, GameVaultContext db) =>
     return Results.Ok();
 });
 
-app.MapPut("/api/mygames/{id}", async (Guid id, OwnedGame updatedGame, GameVaultContext db) =>
+app.MapPut("/api/mygames/{id}", async (Guid id, UpdateGameDto dto, GameVaultContext db) =>
 {
-    if (id != updatedGame.Id)
-        return Results.BadRequest();
-
     OwnedGame? gameToUpdate = await db.Games.FirstOrDefaultAsync(myGame => myGame.Id == id);
+
     if (gameToUpdate == null)
         return Results.NotFound();
 
-    gameToUpdate.RawgId = updatedGame.RawgId;
-    gameToUpdate.PlaytimeHours = updatedGame.PlaytimeHours;
-    gameToUpdate.Title = updatedGame.Title;
-    gameToUpdate.Platform = updatedGame.Platform;
+    gameToUpdate.RawgId = dto.RawgId;
+    gameToUpdate.PlaytimeHours = dto.PlaytimeHours;
+    gameToUpdate.Title = dto.Title;
+    gameToUpdate.Platform = dto.Platform;
 
     await db.SaveChangesAsync();
 
