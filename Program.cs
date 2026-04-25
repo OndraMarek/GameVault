@@ -3,9 +3,14 @@ using GameVault.DTOs;
 using GameVault.Models;
 using Microsoft.EntityFrameworkCore;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
+string apiKey = builder.Configuration["RawgApiKey"]
+    ?? throw new Exception("API klíč nebyl nalezen!");
+
 builder.Services.AddDbContext<GameVaultContext>();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
@@ -37,6 +42,14 @@ app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id) =>
     return Results.Ok(game);
 });
 
+app.MapGet("/api/search/{title}", async (string title, IHttpClientFactory factory) =>
+{
+    HttpClient client = factory.CreateClient();
+    var result = await client.GetFromJsonAsync<RawgSearchResponse>($"https://api.rawg.io/api/games?key={apiKey}&search={title}");
+
+    return Results.Ok(result?.Results);
+});
+
 app.MapPost("/api/mygames", async (OwnedGame newGame, GameVaultContext db) =>
 {
     db.Games.Add(newGame);
@@ -47,7 +60,7 @@ app.MapPost("/api/mygames", async (OwnedGame newGame, GameVaultContext db) =>
 
 app.MapDelete("/api/mygames/{id}", async (Guid id, GameVaultContext db) =>
 {
-    OwnedGame? gameToDelete = db.Games.FirstOrDefault(myGame => myGame.Id == id);
+    OwnedGame? gameToDelete = await db.Games.FirstOrDefaultAsync(myGame => myGame.Id == id);
     if (gameToDelete == null)
         return Results.NotFound();
 
@@ -63,10 +76,11 @@ app.MapPut("/api/mygames/{id}", async (Guid id, OwnedGame updatedGame, GameVault
     if (id != updatedGame.Id)
         return Results.BadRequest();
 
-    OwnedGame? gameToUpdate = db.Games.FirstOrDefault(myGame => myGame.Id == id);
+    OwnedGame? gameToUpdate = await db.Games.FirstOrDefaultAsync(myGame => myGame.Id == id);
     if (gameToUpdate == null)
         return Results.NotFound();
 
+    gameToUpdate.RawgId = updatedGame.RawgId;
     gameToUpdate.PlaytimeHours = updatedGame.PlaytimeHours;
     gameToUpdate.Title = updatedGame.Title;
     gameToUpdate.Platform = updatedGame.Platform;
