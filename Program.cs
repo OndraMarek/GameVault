@@ -1,4 +1,5 @@
 using GameVault.Data;
+using GameVault.DTOs;
 using GameVault.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,12 +17,24 @@ using (var scope = app.Services.CreateScope())
 
 app.MapGet("/api/mygames", async (GameVaultContext db) =>
 {
-    return await db.Games.ToListAsync();
+    var games = await db.Games
+        .Select(game => new GameDetailDto(game.Title, game.Platform.ToString(), game.PlaytimeHours))
+        .ToListAsync();
+
+    return Results.Ok(games);
 });
 
 app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id) =>
 {
-    return await db.Games.FirstOrDefaultAsync(myGame => myGame.Id == id);
+    var game = await db.Games
+        .Where(game => game.Id == id)
+        .Select(game => new GameDetailDto(game.Title, game.Platform.ToString(), game.PlaytimeHours))
+        .FirstOrDefaultAsync();
+
+    if(game == null)
+        return Results.NotFound();
+
+    return Results.Ok(game);
 });
 
 app.MapPost("/api/mygames", async (OwnedGame newGame, GameVaultContext db) =>
