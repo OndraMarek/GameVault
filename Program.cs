@@ -2,6 +2,8 @@ using GameVault.Data;
 using GameVault.DTOs;
 using GameVault.Models;
 using Microsoft.EntityFrameworkCore;
+using SQLitePCL;
+using System.Runtime.InteropServices;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -102,7 +104,7 @@ app.MapPut("/api/mygames/{id}", async (Guid id, UpdateGameDto dto, GameVaultCont
     return Results.Ok();
 });
 
-app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFactory factory) =>
+app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFactory factory, GameVaultContext db) =>
 {
     var client = factory.CreateClient();
 
@@ -110,7 +112,29 @@ app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFacto
 
     var result = await client.GetFromJsonAsync<SteamApiResponse>(url);
 
-    return Results.Ok(result?.Response.Games);
+    if (result?.Response?.Games != null) { 
+        foreach (var steamGame in result.Response.Games)
+        {
+            bool gameExists = db.Games.Any(g => g.Title == steamGame.Name && g.Platform == GamingPlatform.Steam);
+
+            if (!gameExists)
+            {
+                OwnedGame? newGame = new()
+                {
+                    Id = Guid.NewGuid(),
+                    RawgId = 0,
+                    Title = steamGame.Name,
+                    Platform = GamingPlatform.Steam,
+                    PlaytimeHours = steamGame.Playtime_forever / 60
+                };
+                db.Games.Add(newGame);
+            }
+        }
+    }
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok("Synchronization was successful!");
 });
 
 app.Run();
