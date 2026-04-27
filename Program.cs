@@ -9,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 string apiKey = builder.Configuration["RawgApiKey"]
     ?? throw new Exception("API klíč nebyl nalezen!");
 
+string steamKey = builder.Configuration["SteamApiKey"] 
+    ?? throw new Exception("Steam klíč chybí!");
+
 builder.Services.AddDbContext<GameVaultContext>();
 builder.Services.AddHttpClient();
 
@@ -97,6 +100,17 @@ app.MapPut("/api/mygames/{id}", async (Guid id, UpdateGameDto dto, GameVaultCont
     await db.SaveChangesAsync();
 
     return Results.Ok();
+});
+
+app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFactory factory) =>
+{
+    var client = factory.CreateClient();
+
+    string url = $"https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={steamKey}&steamid={steamId}&format=json&include_appinfo=true";
+
+    var result = await client.GetFromJsonAsync<SteamApiResponse>(url);
+
+    return Results.Ok(result?.Response.Games);
 });
 
 app.Run();
