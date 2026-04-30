@@ -7,7 +7,7 @@ interface GameDetail{
 
 export const GameCard = ({title,platformName,playtime}: GameDetail) => {
     return (
-        <div className="game-card">
+        <div className="text-white bg-cyan-800">
             <h3>Title: {title}</h3>
             <p>Game platform: {platformName}</p>
             <p>Number of hours played: {playtime}</p>
