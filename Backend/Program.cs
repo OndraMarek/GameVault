@@ -28,7 +28,7 @@ using (var scope = app.Services.CreateScope())
 app.MapGet("/api/mygames", async (GameVaultContext db) =>
 {
     var games = await db.Games
-        .Select(game => new GameDetailDto(game.Title, game.Platform.ToString(), game.PlaytimeHours))
+        .Select(game => new GameDetailDto(game.Id, game.Title, game.Platform.ToString(), game.PlaytimeHours))
         .ToListAsync();
 
     return Results.Ok(games);
@@ -38,7 +38,7 @@ app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id) =>
 {
     var game = await db.Games
         .Where(game => game.Id == id)
-        .Select(game => new GameDetailDto(game.Title, game.Platform.ToString(), game.PlaytimeHours))
+        .Select(game => new GameDetailDto(game.Id, game.Title, game.Platform.ToString(), game.PlaytimeHours))
         .FirstOrDefaultAsync();
 
     if (game == null)
@@ -69,7 +69,7 @@ app.MapPost("/api/mygames", async (CreateGameDto dto, GameVaultContext db) =>
     db.Games.Add(newGame);
     await db.SaveChangesAsync();
 
-    var responseDto = new GameDetailDto(newGame.Title, newGame.Platform.ToString(), newGame.PlaytimeHours);
+    var responseDto = new GameDetailDto(newGame.Id, newGame.Title, newGame.Platform.ToString(), newGame.PlaytimeHours);
 
     return Results.Ok(responseDto);
 });
@@ -123,7 +123,7 @@ app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFacto
                 OwnedGame? newGame = new()
                 {
                     Id = Guid.NewGuid(),
-                    RawgId = 0,
+                    RawgId = null,
                     Title = steamGame.Name,
                     Platform = GamingPlatform.Steam,
                     PlaytimeHours = steamGame.Playtime_forever / 60

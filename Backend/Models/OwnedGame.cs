@@ -15,7 +15,7 @@ public enum GamingPlatform
 public class OwnedGame
 {
     public Guid Id { get; set; }
-    public int RawgId { get; set; }
+    public int? RawgId { get; set; }
     public string Title { get; set; } = string.Empty;
     public GamingPlatform Platform { get; set; }
     public int PlaytimeHours { get; set; }
