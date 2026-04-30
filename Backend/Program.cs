@@ -2,11 +2,10 @@ using GameVault.Data;
 using GameVault.DTOs;
 using GameVault.Models;
 using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
-using System.Runtime.InteropServices;
-
 
 var builder = WebApplication.CreateBuilder(args);
+
+string frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
 
 string apiKey = builder.Configuration["RawgApiKey"]
     ?? throw new Exception("API key not found!");
@@ -16,8 +15,19 @@ string steamKey = builder.Configuration["SteamApiKey"]
 
 builder.Services.AddDbContext<GameVaultContext>();
 builder.Services.AddHttpClient();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact", builder =>
+    {
+        builder.WithOrigins(frontendUrl)
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
+
+app.UseCors("AllowReact");
 
 using (var scope = app.Services.CreateScope())
 {
