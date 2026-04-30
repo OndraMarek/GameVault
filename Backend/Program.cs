@@ -9,10 +9,10 @@ using System.Runtime.InteropServices;
 var builder = WebApplication.CreateBuilder(args);
 
 string apiKey = builder.Configuration["RawgApiKey"]
-    ?? throw new Exception("API klíč nebyl nalezen!");
+    ?? throw new Exception("API key not found!");
 
-string steamKey = builder.Configuration["SteamApiKey"] 
-    ?? throw new Exception("Steam klíč chybí!");
+string steamKey = builder.Configuration["SteamApiKey"]
+    ?? throw new Exception("Steam key not found!");
 
 builder.Services.AddDbContext<GameVaultContext>();
 builder.Services.AddHttpClient();
@@ -41,7 +41,7 @@ app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id) =>
         .Select(game => new GameDetailDto(game.Title, game.Platform.ToString(), game.PlaytimeHours))
         .FirstOrDefaultAsync();
 
-    if(game == null)
+    if (game == null)
         return Results.NotFound();
 
     return Results.Ok(game);
@@ -112,7 +112,8 @@ app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFacto
 
     var result = await client.GetFromJsonAsync<SteamApiResponse>(url);
 
-    if (result?.Response?.Games != null) { 
+    if (result?.Response?.Games != null)
+    {
         foreach (var steamGame in result.Response.Games)
         {
             bool gameExists = db.Games.Any(g => g.Title == steamGame.Name && g.Platform == GamingPlatform.Steam);
