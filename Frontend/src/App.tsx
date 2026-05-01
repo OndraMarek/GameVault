@@ -35,7 +35,7 @@ function App() {
         {myGames.length === 0 ? (
           <p>Loading games from the server...</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-4 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-x-8 gap-y-4 p-4">
             {myGames.map((game) => (
               <GameCard 
                 key={game.id} 
