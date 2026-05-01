@@ -4,8 +4,9 @@ import GameCard from './components/GameCard';
 export interface GameDetail {
     id: string;
     title: string;
-    platformName: string;
+    platformNames: string[];
     playtime: number;
+    coverImageUrl?: string;
 }
 
 function App() {
@@ -36,12 +37,12 @@ function App() {
           <p>Loading games from the server...</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-x-8 gap-y-4 p-4">
-            {myGames.map((game) => (
+            {myGames.map((game: GameDetail) => (
               <GameCard 
                 key={game.id} 
                 id={game.id} 
                 title={game.title} 
-                platformName={game.platformName} 
+                platformNames={game.platformNames} 
                 playtime={game.playtime} 
               />
             ))} 
