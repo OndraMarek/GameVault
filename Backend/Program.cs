@@ -38,22 +38,21 @@ using (var scope = app.Services.CreateScope())
 app.MapGet("/api/mygames", async (GameVaultContext db) =>
 {
     var gamesInMemory = await db.Games.ToListAsync();
-    var games = gamesInMemory
+    var gamesDto = gamesInMemory
         .Select(game => new GameDetailDto(game.Id, game.Title, game.Platforms.Select(p => p.ToString()).ToList(), game.PlaytimeHours, game.CoverImageUrl))
         .ToList();
 
-    return Results.Ok(games);
+    return Results.Ok(gamesDto);
 });
 
 app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id) =>
 {
-    var game = await db.Games
-        .Where(game => game.Id == id)
-        .Select(game => new GameDetailDto(game.Id, game.Title, game.Platforms.Select(p => p.ToString()).ToList(), game.PlaytimeHours, game.CoverImageUrl))
-        .FirstOrDefaultAsync();
+    var gameInMemory = await db.Games.FirstOrDefaultAsync(g => g.Id == id);
 
-    if (game == null)
+    if (gameInMemory == null)
         return Results.NotFound();
+
+    var game = new GameDetailDto(gameInMemory.Id, gameInMemory.Title, gameInMemory.Platforms.Select(p => p.ToString()).ToList(), gameInMemory.PlaytimeHours, gameInMemory.CoverImageUrl);
 
     return Results.Ok(game);
 });
