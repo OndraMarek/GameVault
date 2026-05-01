@@ -37,9 +37,10 @@ using (var scope = app.Services.CreateScope())
 
 app.MapGet("/api/mygames", async (GameVaultContext db) =>
 {
-    var games = await db.Games
-        .Select(game => new GameDetailDto(game.Id, game.Title, game.Platform.ToString(), game.PlaytimeHours))
-        .ToListAsync();
+    var gamesInMemory = await db.Games.ToListAsync();
+    var games = gamesInMemory
+        .Select(game => new GameDetailDto(game.Id, game.Title, game.Platforms.Select(p => p.ToString()).ToList(), game.PlaytimeHours, game.CoverImageUrl))
+        .ToList();
 
     return Results.Ok(games);
 });
@@ -48,7 +49,7 @@ app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id) =>
 {
     var game = await db.Games
         .Where(game => game.Id == id)
-        .Select(game => new GameDetailDto(game.Id, game.Title, game.Platform.ToString(), game.PlaytimeHours))
+        .Select(game => new GameDetailDto(game.Id, game.Title, game.Platforms.Select(p => p.ToString()).ToList(), game.PlaytimeHours, game.CoverImageUrl))
         .FirstOrDefaultAsync();
 
     if (game == null)
@@ -72,14 +73,15 @@ app.MapPost("/api/mygames", async (CreateGameDto dto, GameVaultContext db) =>
         Id = Guid.NewGuid(),
         RawgId = dto.RawgId,
         Title = dto.Title,
-        Platform = dto.Platform,
-        PlaytimeHours = dto.PlaytimeHours
+        Platforms = dto.Platforms,
+        PlaytimeHours = dto.PlaytimeHours,
+        CoverImageUrl = dto.CoverImageUrl
     };
 
     db.Games.Add(newGame);
     await db.SaveChangesAsync();
 
-    var responseDto = new GameDetailDto(newGame.Id, newGame.Title, newGame.Platform.ToString(), newGame.PlaytimeHours);
+    var responseDto = new GameDetailDto(newGame.Id, newGame.Title, newGame.Platforms.Select(p => p.ToString()).ToList(), newGame.PlaytimeHours, newGame.CoverImageUrl);
 
     return Results.Ok(responseDto);
 });
@@ -107,7 +109,8 @@ app.MapPut("/api/mygames/{id}", async (Guid id, UpdateGameDto dto, GameVaultCont
     gameToUpdate.RawgId = dto.RawgId;
     gameToUpdate.PlaytimeHours = dto.PlaytimeHours;
     gameToUpdate.Title = dto.Title;
-    gameToUpdate.Platform = dto.Platform;
+    gameToUpdate.Platforms = dto.Platforms;
+    gameToUpdate.CoverImageUrl = dto.CoverImageUrl;
 
     await db.SaveChangesAsync();
 
@@ -126,7 +129,7 @@ app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFacto
     {
         foreach (var steamGame in result.Response.Games)
         {
-            bool gameExists = db.Games.Any(g => g.Title == steamGame.Name && g.Platform == GamingPlatform.Steam);
+            bool gameExists = db.Games.Any(g => g.Title == steamGame.Name && g.Platforms.Contains(GamingPlatform.Steam));
 
             if (!gameExists)
             {
@@ -135,7 +138,7 @@ app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFacto
                     Id = Guid.NewGuid(),
                     RawgId = null,
                     Title = steamGame.Name,
-                    Platform = GamingPlatform.Steam,
+                    Platforms = [GamingPlatform.Steam],
                     PlaytimeHours = steamGame.Playtime_forever / 60
                 };
                 db.Games.Add(newGame);
