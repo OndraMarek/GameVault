@@ -8,7 +8,7 @@ interface RawgSearchResult {
     released: string
 }
 
-export const GameCard = ({ title, platformNames, playtime, coverImageUrl }: GameDetail) => {
+export const GameCard = ({ id, title, platformNames, playtime, coverImageUrl, onCoverUpdated }: GameDetail) => {
 
     const [searchResults, setSearchResults] = useState<RawgSearchResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +27,30 @@ export const GameCard = ({ title, platformNames, playtime, coverImageUrl }: Game
         }
         finally {
             setIsLoading(false);
+        }
+    }
+
+    const handleSelectCover = async (selectedGame: RawgSearchResult) => {
+        try {
+            const response = await fetch(`https://localhost:7154/api/mygames/${id}`, {
+                method: 'PUT', headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    RawgId: selectedGame.id,
+                    Title: title,
+                    Platforms: platformNames,
+                    PlaytimeHours: playtime,
+                    CoverImageUrl: selectedGame.background_image
+                })
+            });
+
+            if (response.ok) {
+                onCoverUpdated(id, selectedGame.background_image);
+                setSearchResults([]);
+            }
+        } catch (error) {
+            console.error("Failed to connect to backend:", error);
         }
     }
 
@@ -64,7 +88,7 @@ export const GameCard = ({ title, platformNames, playtime, coverImageUrl }: Game
 
                 <div className="mt-2">
                     {searchResults.map(res => (
-                        <p key={res.id} className="text-sm">{res.name}</p>
+                        <p onClick={() => handleSelectCover(res)} key={res.id} className="text-sm cursor-pointer hover:text-cyan-300 transition-colors">{res.name}</p>
                     ))}
                 </div>
             </div>

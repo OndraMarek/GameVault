@@ -7,6 +7,7 @@ export interface GameDetail {
   platformNames: string[];
   playtime: number;
   coverImageUrl?: string;
+  onCoverUpdated: (id: string, newCoverUrl: string) => void;
 }
 
 function App() {
@@ -29,6 +30,14 @@ function App() {
     fetchGames();
   }, []);
 
+  const handleCoverUpdated = (gameId: string, newCoverUrl: string) => {
+    setMyGames(prevGames =>
+      prevGames.map(game =>
+        game.id === gameId ? { ...game, coverImageUrl: newCoverUrl } : game
+      )
+    );
+  };
+
   return (
     <div className="bg-sky-950 text-center">
       <h2 className="text-5xl font-bold text-heading text-white p-7">My Game Vault</h2>
@@ -45,6 +54,8 @@ function App() {
               title={game.title}
               platformNames={game.platformNames}
               playtime={game.playtime}
+              coverImageUrl={game.coverImageUrl}
+              onCoverUpdated={handleCoverUpdated}
             />
           ))}
         </div>
