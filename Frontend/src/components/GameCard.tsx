@@ -11,17 +11,22 @@ interface RawgSearchResult {
 export const GameCard = ({ title, platformNames, playtime, coverImageUrl }: GameDetail) => {
 
     const [searchResults, setSearchResults] = useState<RawgSearchResult[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSearch = async () => {
         try {
+            setIsLoading(true);
             const response = await fetch(`https://localhost:7154/api/search/${title}`);
 
             if (response.ok) {
                 const data = await response.json();
-                setSearchResults(data.slice(0, 3))
+                setSearchResults(data.slice(0, 4))
             }
         } catch (error) {
             console.error("Failed to connect to backend:", error);
+        }
+        finally {
+            setIsLoading(false);
         }
     }
 
@@ -49,13 +54,13 @@ export const GameCard = ({ title, platformNames, playtime, coverImageUrl }: Game
                 <p>{platformNames.join(", ")}</p>
                 <p>{playtime}</p>
 
-                {!coverImageUrl && (
+                {!coverImageUrl && (!isLoading ? (
                     <button
                         onClick={handleSearch}
                         className="mt-4 bg-cyan-500 hover:bg-cyan-400 text-white rounded px-4 py-2 transition-colors">
                         Search cover
                     </button>
-                )}
+                ) : <p>Loading...</p>)}
 
                 <div className="mt-2">
                     {searchResults.map(res => (
