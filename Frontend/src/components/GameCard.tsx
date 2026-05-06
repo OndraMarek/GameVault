@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { GameDetail } from '../pages/Home';
+import { Link } from 'react-router-dom';
 
 interface RawgSearchResult {
   id: number;
@@ -104,8 +105,15 @@ function GameCard({
              duration-300 text-white p-4 flex flex-col items-center justify-center text-center"
       >
         <h3 className="font-bold text-lg">{title}</h3>
+
         <p>{platformNames.join(', ')}</p>
         <p>{playtime}</p>
+        <Link to={`/game/${id}`}>
+          <button className="mt-4 bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-2 transition-colors">
+            Detail
+          </button>
+        </Link>
+
         <button
           onClick={handleDelete}
           className="mt-4 bg-red-600 hover:bg-red-500 text-white rounded px-4 py-2 transition-colors"
