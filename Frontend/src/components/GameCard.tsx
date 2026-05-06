@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { GameDetail } from '../App';
+import type { GameDetail } from '../pages/Home';
 
 interface RawgSearchResult {
   id: number;
@@ -8,7 +8,7 @@ interface RawgSearchResult {
   released: string;
 }
 
-export const GameCard = ({
+function GameCard({
   id,
   title,
   platformNames,
@@ -16,7 +16,7 @@ export const GameCard = ({
   coverImageUrl,
   onCoverUpdated,
   onGameDeleted,
-}: GameDetail) => {
+}: GameDetail) {
   const [searchResults, setSearchResults] = useState<RawgSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -139,6 +139,6 @@ export const GameCard = ({
       </div>
     </div>
   );
-};
+}
 
 export default GameCard;
