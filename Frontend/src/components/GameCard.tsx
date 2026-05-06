@@ -108,10 +108,11 @@ function GameCard({
 
         <p>{platformNames.join(', ')}</p>
         <p>{playtime}</p>
-        <Link to={`/game/${id}`}>
-          <button className="mt-4 bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-2 transition-colors">
-            Detail
-          </button>
+        <Link
+          to={`/game/${id}`}
+          className="mt-4 bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-2 transition-colors block text-center"
+        >
+          Detail
         </Link>
 
         <button
