@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 
 export interface GameDetailDto {
   id: string;
@@ -30,16 +30,22 @@ function GameDetailPage() {
     };
 
     fetchGame();
-  }, []);
+  }, [id]);
 
   if (!game) return <div>Loading game details...</div>;
 
   return (
     <div
-      className="text-black text-3xl text-center p-50 bg-cover bg-center"
+      className="relative text-black text-3xl text-center p-50 bg-cover bg-center min-h-[400px] flex flex-col justify-center"
       style={{ backgroundImage: `url(${game.coverImageUrl})` }}
     >
-      <h1 className="text-5xl font-bold text-heading text-white text-shadow-lg/30">
+      <Link
+        to={`/`}
+        className="absolute top-4 left-4 bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-2 transition-colors"
+      >
+        Home
+      </Link>
+      <h1 className="text-5xl font-bold text-white text-shadow-lg/30">
         {game.title}
       </h1>
     </div>
