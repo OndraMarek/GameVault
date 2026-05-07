@@ -8,7 +8,7 @@ interface GameFormModalProps {
   onSaveSuccess: () => void;
 }
 
-export default function GameFormModal({
+function GameFormModal({
   isOpen,
   onClose,
   initialData,
@@ -165,3 +165,5 @@ export default function GameFormModal({
     </div>
   );
 }
+
+export default GameFormModal;
