@@ -35,9 +35,13 @@ function GameDetailPage() {
   if (!game) return <div>Loading game details...</div>;
 
   return (
-    <div className="text-black text-3xl text-center p-10">
-      <h1>{game.title}</h1>
-      <img src={game.coverImageUrl} />
+    <div
+      className="text-black text-3xl text-center p-50 bg-cover bg-center"
+      style={{ backgroundImage: `url(${game.coverImageUrl})` }}
+    >
+      <h1 className="text-5xl font-bold text-heading text-white text-shadow-lg/30">
+        {game.title}
+      </h1>
     </div>
   );
 }
