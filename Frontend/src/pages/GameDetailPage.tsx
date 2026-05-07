@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router';
 
 export interface GameDetailDto {
   id: string;
+  rawgId: number;
   title: string;
   platformNames: string[];
   playtime: number;

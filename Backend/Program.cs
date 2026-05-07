@@ -44,7 +44,7 @@ app.MapGet("/api/mygames", async (GameVaultContext db) =>
 {
     var gamesInMemory = await db.Games.ToListAsync();
     var gamesDto = gamesInMemory
-        .Select(game => new GameDetailDto(game.Id, game.Title, game.Platforms.Select(p => p.ToString()).ToList(), game.PlaytimeHours, game.CoverImageUrl))
+        .Select(game => new GameDetailDto(game.Id, game.RawgId, game.Title, game.Platforms.Select(p => p.ToString()).ToList(), game.PlaytimeHours, game.CoverImageUrl))
         .ToList();
 
     return Results.Ok(gamesDto);
@@ -57,7 +57,7 @@ app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id) =>
     if (gameInMemory == null)
         return Results.NotFound();
 
-    var game = new GameDetailDto(gameInMemory.Id, gameInMemory.Title, gameInMemory.Platforms.Select(p => p.ToString()).ToList(), gameInMemory.PlaytimeHours, gameInMemory.CoverImageUrl);
+    var game = new GameDetailDto(gameInMemory.Id, gameInMemory.RawgId, gameInMemory.Title, gameInMemory.Platforms.Select(p => p.ToString()).ToList(), gameInMemory.PlaytimeHours, gameInMemory.CoverImageUrl);
 
     return Results.Ok(game);
 });
@@ -85,7 +85,7 @@ app.MapPost("/api/mygames", async (CreateGameDto dto, GameVaultContext db) =>
     db.Games.Add(newGame);
     await db.SaveChangesAsync();
 
-    var responseDto = new GameDetailDto(newGame.Id, newGame.Title, newGame.Platforms.Select(p => p.ToString()).ToList(), newGame.PlaytimeHours, newGame.CoverImageUrl);
+    var responseDto = new GameDetailDto(newGame.Id, newGame.RawgId, newGame.Title, newGame.Platforms.Select(p => p.ToString()).ToList(), newGame.PlaytimeHours, newGame.CoverImageUrl);
 
     return Results.Ok(responseDto);
 });
@@ -143,7 +143,8 @@ app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFacto
                     RawgId = null,
                     Title = steamGame.Name,
                     Platforms = [GamingPlatform.Steam],
-                    PlaytimeHours = steamGame.Playtime_forever / 60
+                    PlaytimeHours = steamGame.Playtime_forever / 60,
+                    CoverImageUrl = null
                 };
                 db.Games.Add(newGame);
             }
