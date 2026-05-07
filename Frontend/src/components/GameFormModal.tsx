@@ -5,12 +5,14 @@ interface GameFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialData?: GameDetail | null;
+  onSaveSuccess: () => void;
 }
 
 export default function GameFormModal({
   isOpen,
   onClose,
   initialData,
+  onSaveSuccess,
 }: GameFormModalProps) {
   const [title, setTitle] = useState('');
   const [platforms, setPlatforms] = useState('');
@@ -32,6 +34,66 @@ export default function GameFormModal({
   }, [initialData, isOpen]);
 
   if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const platformArray = platforms
+      .split(',')
+      .map((p) => p.trim())
+      .filter((p) => p !== '');
+
+    if (initialData) {
+      try {
+        const response = await fetch(
+          `https://localhost:7154/api/mygames/${initialData.id}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              RawgId: initialData.rawgId || null,
+              Title: title,
+              Platforms: platformArray,
+              PlaytimeHours: playtime,
+              CoverImageUrl: coverUrl,
+            }),
+          },
+        );
+
+        if (response.ok) {
+          onSaveSuccess();
+          onClose();
+        }
+      } catch (error) {
+        console.error('Failed to connect to backend:', error);
+      }
+    } else {
+      try {
+        const response = await fetch(`https://localhost:7154/api/mygames`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            RawgId: null,
+            Title: title,
+            Platforms: platformArray,
+            PlaytimeHours: playtime,
+            CoverImageUrl: coverUrl,
+          }),
+        });
+
+        if (response.ok) {
+          onSaveSuccess();
+          onClose();
+        }
+      } catch (error) {
+        console.error('Failed to connect to backend:', error);
+      }
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">

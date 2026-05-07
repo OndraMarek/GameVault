@@ -75,7 +75,7 @@ app.MapPost("/api/mygames", async (CreateGameDto dto, GameVaultContext db) =>
     OwnedGame newGame = new()
     {
         Id = Guid.NewGuid(),
-        RawgId = dto.RawgId,
+        RawgId = null,
         Title = dto.Title,
         Platforms = dto.Platforms,
         PlaytimeHours = dto.PlaytimeHours,

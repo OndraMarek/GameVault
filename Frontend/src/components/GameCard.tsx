@@ -11,6 +11,7 @@ interface RawgSearchResult {
 
 function GameCard({
   id,
+  rawgId,
   title,
   platformNames,
   playtime,

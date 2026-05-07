@@ -3,6 +3,7 @@ import GameCard from '../components/GameCard';
 
 export interface GameDetail {
   id: string;
+  rawgId: number;
   title: string;
   platformNames: string[];
   playtime: number;
@@ -57,6 +58,7 @@ function Home() {
             <GameCard
               key={game.id}
               id={game.id}
+              rawgId={game.rawgId}
               title={game.title}
               platformNames={game.platformNames}
               playtime={game.playtime}
