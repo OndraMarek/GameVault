@@ -18,6 +18,7 @@ function GameCard({
   coverImageUrl,
   onCoverUpdated,
   onGameDeleted,
+  onEditRequest,
 }: GameDetail) {
   const [searchResults, setSearchResults] = useState<RawgSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -115,6 +116,25 @@ function GameCard({
         >
           Detail
         </Link>
+
+        <button
+          onClick={() =>
+            onEditRequest({
+              id,
+              rawgId,
+              title,
+              platformNames,
+              playtime,
+              coverImageUrl,
+              onCoverUpdated,
+              onGameDeleted,
+              onEditRequest,
+            })
+          }
+          className="mt-4 bg-yellow-600 hover:bg-yellow-500 text-white rounded px-4 py-2 transition-colors"
+        >
+          Edit
+        </button>
 
         <button
           onClick={handleDelete}

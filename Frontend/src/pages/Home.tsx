@@ -11,6 +11,7 @@ export interface GameDetail {
   coverImageUrl?: string;
   onCoverUpdated: (id: string, newCoverUrl: string) => void;
   onGameDeleted: (id: string) => void;
+  onEditRequest: (game: GameDetail) => void;
 }
 
 function Home() {
@@ -84,6 +85,7 @@ function Home() {
               coverImageUrl={game.coverImageUrl}
               onCoverUpdated={handleCoverUpdated}
               onGameDeleted={handleGameDelete}
+              onEditRequest={handleOpenEditModal}
             />
           ))}
         </div>
