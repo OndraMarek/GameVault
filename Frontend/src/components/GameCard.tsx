@@ -2,6 +2,13 @@ import { useState } from 'react';
 import type { GameDetail } from '../pages/Home';
 import { Link } from 'react-router-dom';
 
+interface GameCardProps {
+  game: GameDetail;
+  onCoverUpdated: (id: string, newCoverUrl: string) => void;
+  onGameDeleted: (id: string) => void;
+  onEditRequest: (game: GameDetail) => void;
+}
+
 interface RawgSearchResult {
   id: number;
   name: string;
@@ -10,16 +17,11 @@ interface RawgSearchResult {
 }
 
 function GameCard({
-  id,
-  rawgId,
-  title,
-  platformNames,
-  playtime,
-  coverImageUrl,
+  game,
   onCoverUpdated,
   onGameDeleted,
   onEditRequest,
-}: GameDetail) {
+}: GameCardProps) {
   const [searchResults, setSearchResults] = useState<RawgSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,7 +29,7 @@ function GameCard({
     try {
       setIsLoading(true);
       const response = await fetch(
-        `https://localhost:7154/api/search/${title}`,
+        `https://localhost:7154/api/search/${game.title}`,
       );
 
       if (response.ok) {
@@ -43,22 +45,25 @@ function GameCard({
 
   const handleSelectCover = async (selectedGame: RawgSearchResult) => {
     try {
-      const response = await fetch(`https://localhost:7154/api/mygames/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `https://localhost:7154/api/mygames/${game.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            RawgId: selectedGame.id,
+            Title: game.title,
+            Platforms: game.platformNames,
+            PlaytimeHours: game.playtime,
+            CoverImageUrl: selectedGame.background_image,
+          }),
         },
-        body: JSON.stringify({
-          RawgId: selectedGame.id,
-          Title: title,
-          Platforms: platformNames,
-          PlaytimeHours: playtime,
-          CoverImageUrl: selectedGame.background_image,
-        }),
-      });
+      );
 
       if (response.ok) {
-        onCoverUpdated(id, selectedGame.background_image);
+        onCoverUpdated(game.id, selectedGame.background_image);
         setSearchResults([]);
       }
     } catch (error) {
@@ -68,12 +73,15 @@ function GameCard({
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`https://localhost:7154/api/mygames/${id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `https://localhost:7154/api/mygames/${game.id}`,
+        {
+          method: 'DELETE',
+        },
+      );
 
       if (response.ok) {
-        onGameDeleted(id);
+        onGameDeleted(game.id);
       }
     } catch (error) {
       console.error('Failed to connect to backend:', error);
@@ -84,12 +92,12 @@ function GameCard({
 
   return (
     <div className="group relative w-full aspect-[2/3] rounded-lg shadow-md overflow-hidden bg-cyan-800">
-      {coverImageUrl ? (
+      {game.coverImageUrl ? (
         <img
-          src={coverImageUrl}
+          src={game.coverImageUrl}
           className="absolute inset-0 w-full h-full object-cover transition-all 
                     duration-300 group-hover:blur-sm group-hover:brightness-50"
-          alt={title}
+          alt={game.title}
         />
       ) : (
         <img
@@ -98,7 +106,7 @@ function GameCard({
           }
           className="absolute inset-0 w-full h-full object-cover transition-all
                      duration-300 group-hover:blur-sm group-hover:brightness-50"
-          alt={title}
+          alt={game.title}
         />
       )}
 
@@ -106,31 +114,19 @@ function GameCard({
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity
              duration-300 text-white p-4 flex flex-col items-center justify-center text-center"
       >
-        <h3 className="font-bold text-lg">{title}</h3>
+        <h3 className="font-bold text-lg">{game.title}</h3>
 
-        <p>{platformNames.join(', ')}</p>
-        <p>{playtime}</p>
+        <p>{game.platformNames.join(', ')}</p>
+        <p>{game.playtime}</p>
         <Link
-          to={`/game/${id}`}
+          to={`/game/${game.id}`}
           className="mt-4 bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-2 transition-colors block text-center"
         >
           Detail
         </Link>
 
         <button
-          onClick={() =>
-            onEditRequest({
-              id,
-              rawgId,
-              title,
-              platformNames,
-              playtime,
-              coverImageUrl,
-              onCoverUpdated,
-              onGameDeleted,
-              onEditRequest,
-            })
-          }
+          onClick={() => onEditRequest(game)}
           className="mt-4 bg-yellow-600 hover:bg-yellow-500 text-white rounded px-4 py-2 transition-colors"
         >
           Edit
@@ -143,7 +139,7 @@ function GameCard({
           Delete
         </button>
 
-        {!coverImageUrl &&
+        {!game.coverImageUrl &&
           (!isLoading ? (
             <button
               onClick={handleSearch}

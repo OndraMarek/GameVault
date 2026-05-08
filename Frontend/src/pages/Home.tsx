@@ -9,9 +9,6 @@ export interface GameDetail {
   platformNames: string[];
   playtime: number;
   coverImageUrl?: string;
-  onCoverUpdated: (id: string, newCoverUrl: string) => void;
-  onGameDeleted: (id: string) => void;
-  onEditRequest: (game: GameDetail) => void;
 }
 
 function Home() {
@@ -77,12 +74,7 @@ function Home() {
           {myGames.map((game: GameDetail) => (
             <GameCard
               key={game.id}
-              id={game.id}
-              rawgId={game.rawgId}
-              title={game.title}
-              platformNames={game.platformNames}
-              playtime={game.playtime}
-              coverImageUrl={game.coverImageUrl}
+              game={game}
               onCoverUpdated={handleCoverUpdated}
               onGameDeleted={handleGameDelete}
               onEditRequest={handleOpenEditModal}
