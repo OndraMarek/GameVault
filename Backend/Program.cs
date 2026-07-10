@@ -54,20 +54,20 @@ app.MapGet("/api/mygames", async (GameVaultContext db, string? platform, string?
 
     if (!string.IsNullOrEmpty(sortBy))
     {
-        if (sortBy == "Title")
+        if (sortBy == "TitleASC")
         {
             query = query.OrderBy(g => g.Title);
         }
-        else if (sortBy == "Playtime")
+        else if (sortBy == "TitleDESC")
         {
-            query = query.OrderByDescending(g => g.PlaytimeHours);
+            query = query.OrderByDescending(g => g.Title);
         }
     }
 
     var gamesInMemory = await query.ToListAsync();
 
     var gamesDto = gamesInMemory
-        .Select(game => new GameDetailDto(game.Id, game.RawgId, game.Title, game.Platforms.Select(p => p.ToString()).ToList(), game.PlaytimeHours, game.CoverImageUrl))
+        .Select(game => new GameDetailDto(game.Id, game.RawgId, game.Title, game.Platforms.Select(p => p.ToString()).ToList(), game.HasPlayed, game.CoverImageUrl))
         .ToList();
 
     return Results.Ok(gamesDto);
@@ -80,7 +80,7 @@ app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id) =>
     if (gameInMemory == null)
         return Results.NotFound();
 
-    var game = new GameDetailDto(gameInMemory.Id, gameInMemory.RawgId, gameInMemory.Title, gameInMemory.Platforms.Select(p => p.ToString()).ToList(), gameInMemory.PlaytimeHours, gameInMemory.CoverImageUrl);
+    var game = new GameDetailDto(gameInMemory.Id, gameInMemory.RawgId, gameInMemory.Title, gameInMemory.Platforms.Select(p => p.ToString()).ToList(), gameInMemory.HasPlayed, gameInMemory.CoverImageUrl);
 
     return Results.Ok(game);
 });
@@ -101,14 +101,14 @@ app.MapPost("/api/mygames", async (CreateGameDto dto, GameVaultContext db) =>
         RawgId = null,
         Title = dto.Title,
         Platforms = dto.Platforms,
-        PlaytimeHours = dto.PlaytimeHours,
+        HasPlayed = dto.HasPlayed,
         CoverImageUrl = dto.CoverImageUrl
     };
 
     db.Games.Add(newGame);
     await db.SaveChangesAsync();
 
-    var responseDto = new GameDetailDto(newGame.Id, newGame.RawgId, newGame.Title, newGame.Platforms.Select(p => p.ToString()).ToList(), newGame.PlaytimeHours, newGame.CoverImageUrl);
+    var responseDto = new GameDetailDto(newGame.Id, newGame.RawgId, newGame.Title, newGame.Platforms.Select(p => p.ToString()).ToList(), newGame.HasPlayed, newGame.CoverImageUrl);
 
     return Results.Ok(responseDto);
 });
@@ -134,7 +134,7 @@ app.MapPut("/api/mygames/{id}", async (Guid id, UpdateGameDto dto, GameVaultCont
         return Results.NotFound();
 
     gameToUpdate.RawgId = dto.RawgId;
-    gameToUpdate.PlaytimeHours = dto.PlaytimeHours;
+    gameToUpdate.HasPlayed = dto.HasPlayed;
     gameToUpdate.Title = dto.Title;
     gameToUpdate.Platforms = dto.Platforms;
     gameToUpdate.CoverImageUrl = dto.CoverImageUrl;
@@ -166,7 +166,7 @@ app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFacto
                     RawgId = null,
                     Title = steamGame.Name,
                     Platforms = [GamingPlatform.Steam],
-                    PlaytimeHours = steamGame.Playtime_forever / 60,
+                    HasPlayed = steamGame.Playtime_forever > 0,
                     CoverImageUrl = null
                 };
                 db.Games.Add(newGame);

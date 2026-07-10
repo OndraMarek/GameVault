@@ -7,20 +7,27 @@ export interface GameDetail {
   rawgId: number;
   title: string;
   platformNames: string[];
-  playtime: number;
+  hasPlayed: boolean;
   coverImageUrl?: string;
 }
 
 function Home() {
   const [myGames, setMyGames] = useState<GameDetail[]>([]);
   const [filterPlatform, setFilterPlatform] = useState<string>('All');
-  const [sortBy, setSortBy] = useState<string>('Title');
+  const [sortBy, setSortBy] = useState<string>('TitleASC');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGame, setEditingGame] = useState<GameDetail | null>(null);
 
-  const availablePlatforms = Array.from(
-    new Set(myGames.flatMap((game) => game.platformNames)),
-  ).sort();
+  const availablePlatforms = [
+    'Steam',
+    'EpicGames',
+    'PlayStation',
+    'Xbox',
+    'GOG',
+    'NintendoSwitch',
+    'UbisoftConnect',
+    'Other',
+  ];
 
   const fetchGames = async () => {
     try {
@@ -99,8 +106,8 @@ function Home() {
             onChange={(e) => setSortBy(e.target.value)}
             className="bg-sky-900 border border-sky-700 rounded px-2 py-1 focus:outline-none"
           >
-            <option value="Title">Alphabetical (A-Z)</option>
-            <option value="Playtime">Playtime (High to Low)</option>
+            <option value="TitleASC">Alphabetical (A-Z)</option>
+            <option value="TitleDESC">Alphabetical (Z-A)</option>
           </select>
         </label>
       </div>

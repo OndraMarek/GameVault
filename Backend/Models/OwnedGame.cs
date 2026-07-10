@@ -18,6 +18,6 @@ public class OwnedGame
     public int? RawgId { get; set; }
     public string Title { get; set; } = string.Empty;
     public List<GamingPlatform> Platforms { get; set; } = [];
-    public int PlaytimeHours { get; set; }
+    public bool HasPlayed { get; set; }
     public string? CoverImageUrl { get; set; }
 }

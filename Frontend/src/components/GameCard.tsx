@@ -56,7 +56,7 @@ function GameCard({
             RawgId: selectedGame.id,
             Title: game.title,
             Platforms: game.platformNames,
-            PlaytimeHours: game.playtime,
+            HasPlayed: game.hasPlayed,
             CoverImageUrl: selectedGame.background_image,
           }),
         },
@@ -117,7 +117,7 @@ function GameCard({
         <h3 className="font-bold text-lg">{game.title}</h3>
 
         <p>{game.platformNames.join(', ')}</p>
-        <p>{game.playtime}</p>
+        <p>{game.hasPlayed ? 'Played' : 'Not Played'}</p>
         <Link
           to={`/game/${game.id}`}
           className="mt-4 bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-2 transition-colors block text-center"

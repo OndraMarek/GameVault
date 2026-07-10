@@ -6,7 +6,7 @@ export interface GameDetailDto {
   rawgId: number;
   title: string;
   platformNames: string[];
-  playtime: number;
+  hasPlayed: boolean;
   coverImageUrl?: string;
 }
 

@@ -16,19 +16,19 @@ function GameFormModal({
 }: GameFormModalProps) {
   const [title, setTitle] = useState('');
   const [platforms, setPlatforms] = useState('');
-  const [playtime, setPlaytime] = useState<number>(0);
+  const [hasPlayed, setHasPlayed] = useState(false);
   const [coverUrl, setCoverUrl] = useState('');
 
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title);
       setPlatforms(initialData.platformNames.join(', '));
-      setPlaytime(initialData.playtime);
+      setHasPlayed(initialData.hasPlayed);
       setCoverUrl(initialData.coverImageUrl || '');
     } else {
       setTitle('');
       setPlatforms('');
-      setPlaytime(0);
+      setHasPlayed(false);
       setCoverUrl('');
     }
   }, [initialData, isOpen]);
@@ -56,7 +56,7 @@ function GameFormModal({
               RawgId: initialData.rawgId || null,
               Title: title,
               Platforms: platformArray,
-              PlaytimeHours: playtime,
+              hasPlayed: hasPlayed,
               CoverImageUrl: coverUrl,
             }),
           },
@@ -80,7 +80,7 @@ function GameFormModal({
             RawgId: null,
             Title: title,
             Platforms: platformArray,
-            PlaytimeHours: playtime,
+            HasPlayed: hasPlayed,
             CoverImageUrl: coverUrl,
           }),
         });
@@ -125,12 +125,11 @@ function GameFormModal({
           </label>
 
           <label className="flex flex-col text-sm font-medium">
-            Playtime (hours):
+            HasPlayed:
             <input
-              type="number"
-              min="0"
-              value={playtime}
-              onChange={(e) => setPlaytime(Number(e.target.value))}
+              type="checkbox"
+              checked={hasPlayed}
+              onChange={(e) => setHasPlayed(e.target.checked)}
               className="mt-1 p-2 rounded bg-sky-950 border border-sky-700 focus:outline-none focus:border-cyan-400"
             />
           </label>
