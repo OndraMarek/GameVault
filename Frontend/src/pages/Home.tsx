@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import GameCard from '../components/GameCard';
 import GameFormModal from '../components/GameFormModal';
+import SteamSyncModal from '../components/SteamSyncModal';
 
 export interface GameDetail {
   id: string;
@@ -17,6 +18,7 @@ function Home() {
   const [sortBy, setSortBy] = useState<string>('TitleASC');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGame, setEditingGame] = useState<GameDetail | null>(null);
+  const [isSteamModalOpen, setIsSteamModalOpen] = useState(false);
 
   const availablePlatforms = [
     'Steam',
@@ -81,6 +83,12 @@ function Home() {
       >
         Add Game
       </button>
+      <button
+        onClick={() => setIsSteamModalOpen(true)}
+        className="text-white mx-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded transition-colors"
+      >
+        Sync To Steam
+      </button>
 
       <div className="flex justify-center gap-4 my-6 text-white">
         <label className="flex items-center gap-2">
@@ -131,6 +139,14 @@ function Home() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         initialData={editingGame}
+        onSaveSuccess={() => {
+          fetchGames();
+        }}
+      />
+
+      <SteamSyncModal
+        isOpen={isSteamModalOpen}
+        onClose={() => setIsSteamModalOpen(false)}
         onSaveSuccess={() => {
           fetchGames();
         }}
