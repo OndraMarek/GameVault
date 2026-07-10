@@ -24,7 +24,9 @@ function Home() {
 
   const fetchGames = async () => {
     try {
-      const response = await fetch('https://localhost:7154/api/mygames');
+      const response = await fetch(
+        `https://localhost:7154/api/mygames?platform=${filterPlatform}&sortBy=${sortBy}`,
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -37,7 +39,7 @@ function Home() {
 
   useEffect(() => {
     fetchGames();
-  }, []);
+  }, [filterPlatform, sortBy]);
 
   const handleCoverUpdated = (gameId: string, newCoverUrl: string) => {
     setMyGames((prevGames) =>
@@ -60,18 +62,6 @@ function Home() {
     setEditingGame(game);
     setIsModalOpen(true);
   };
-
-  const displayedGames = myGames
-    .filter((game) =>
-      filterPlatform === 'All'
-        ? true
-        : game.platformNames.includes(filterPlatform),
-    )
-    .sort((a, b) =>
-      sortBy === 'Title'
-        ? a.title.localeCompare(b.title)
-        : b.playtime - a.playtime,
-    );
 
   return (
     <div className="bg-sky-950 text-center">
@@ -119,7 +109,7 @@ function Home() {
         <p>Loading games from the server...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-x-8 gap-y-4 p-4">
-          {displayedGames.map((game: GameDetail) => (
+          {myGames.map((game: GameDetail) => (
             <GameCard
               key={game.id}
               game={game}

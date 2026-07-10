@@ -40,9 +40,32 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
 }
 
-app.MapGet("/api/mygames", async (GameVaultContext db) =>
+app.MapGet("/api/mygames", async (GameVaultContext db, string? platform, string? sortBy) =>
 {
-    var gamesInMemory = await db.Games.ToListAsync();
+    IQueryable<OwnedGame> query = db.Games;
+
+    if (!string.IsNullOrEmpty(platform) && platform != "All")
+    {
+        if (Enum.TryParse<GamingPlatform>(platform, out var requestedPlatform))
+        {
+            query = query.Where(g => g.Platforms.Contains(requestedPlatform));
+        }
+    }
+
+    if (!string.IsNullOrEmpty(sortBy))
+    {
+        if (sortBy == "Title")
+        {
+            query = query.OrderBy(g => g.Title);
+        }
+        else if (sortBy == "Playtime")
+        {
+            query = query.OrderByDescending(g => g.PlaytimeHours);
+        }
+    }
+
+    var gamesInMemory = await query.ToListAsync();
+
     var gamesDto = gamesInMemory
         .Select(game => new GameDetailDto(game.Id, game.RawgId, game.Title, game.Platforms.Select(p => p.ToString()).ToList(), game.PlaytimeHours, game.CoverImageUrl))
         .ToList();
