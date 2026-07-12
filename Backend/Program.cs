@@ -167,9 +167,24 @@ app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFacto
                     Title = steamGame.Name,
                     Platforms = [GamingPlatform.Steam],
                     HasPlayed = steamGame.Playtime_forever > 0,
-                    CoverImageUrl = null
+                    CoverImageUrl = $"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{steamGame.Appid}/library_600x900_2x.jpg"
                 };
                 db.Games.Add(newGame);
+            }
+            else
+            {
+                var existingGame = db.Games.First(g => g.Title == steamGame.Name && g.Platforms.Contains(GamingPlatform.Steam));
+                bool isPlayedOnSteam = steamGame.Playtime_forever > 0;
+
+                if (existingGame.HasPlayed != isPlayedOnSteam)
+                {
+                    existingGame.HasPlayed = isPlayedOnSteam;
+
+                    if (string.IsNullOrEmpty(existingGame.CoverImageUrl))
+                    {
+                        existingGame.CoverImageUrl = $"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{steamGame.Appid}/library_600x900_2x.jpg";
+                    }
+                }
             }
         }
     }

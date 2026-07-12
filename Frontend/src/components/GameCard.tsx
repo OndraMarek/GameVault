@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { GameDetail } from '../pages/Home';
 import { Link } from 'react-router-dom';
 
@@ -9,68 +8,7 @@ interface GameCardProps {
   onEditRequest: (game: GameDetail) => void;
 }
 
-interface RawgSearchResult {
-  id: number;
-  name: string;
-  background_image: string;
-  released: string;
-}
-
-function GameCard({
-  game,
-  onCoverUpdated,
-  onGameDeleted,
-  onEditRequest,
-}: GameCardProps) {
-  const [searchResults, setSearchResults] = useState<RawgSearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSearch = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(
-        `https://localhost:7154/api/search/${game.title}`,
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setSearchResults(data.slice(0, 4));
-      }
-    } catch (error) {
-      console.error('Failed to connect to backend:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSelectCover = async (selectedGame: RawgSearchResult) => {
-    try {
-      const response = await fetch(
-        `https://localhost:7154/api/mygames/${game.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            RawgId: selectedGame.id,
-            Title: game.title,
-            Platforms: game.platformNames,
-            HasPlayed: game.hasPlayed,
-            CoverImageUrl: selectedGame.background_image,
-          }),
-        },
-      );
-
-      if (response.ok) {
-        onCoverUpdated(game.id, selectedGame.background_image);
-        setSearchResults([]);
-      }
-    } catch (error) {
-      console.error('Failed to connect to backend:', error);
-    }
-  };
-
+function GameCard({ game, onGameDeleted, onEditRequest }: GameCardProps) {
   const handleDelete = async () => {
     try {
       const response = await fetch(
@@ -85,8 +23,6 @@ function GameCard({
       }
     } catch (error) {
       console.error('Failed to connect to backend:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -138,30 +74,6 @@ function GameCard({
         >
           Delete
         </button>
-
-        {!game.coverImageUrl &&
-          (!isLoading ? (
-            <button
-              onClick={handleSearch}
-              className="mt-4 bg-cyan-500 hover:bg-cyan-400 text-white rounded px-4 py-2 transition-colors"
-            >
-              Search cover
-            </button>
-          ) : (
-            <p>Loading...</p>
-          ))}
-
-        <div className="mt-2">
-          {searchResults.map((res) => (
-            <p
-              onClick={() => handleSelectCover(res)}
-              key={res.id}
-              className="text-sm cursor-pointer hover:text-cyan-300 transition-colors"
-            >
-              {res.name}
-            </p>
-          ))}
-        </div>
       </div>
     </div>
   );
