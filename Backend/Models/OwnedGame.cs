@@ -20,4 +20,8 @@ public class OwnedGame
     public List<GamingPlatform> Platforms { get; set; } = [];
     public bool HasPlayed { get; set; }
     public string? CoverImageUrl { get; set; }
+    public string? Description { get; set; }
+    public string? ReleaseDate { get; set; }
+    public List<string> Genres { get; set; } = [];
+    public List<string> Developers { get; set; } = [];
 }

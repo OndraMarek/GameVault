@@ -67,22 +67,77 @@ app.MapGet("/api/mygames", async (GameVaultContext db, string? platform, string?
     var gamesInMemory = await query.ToListAsync();
 
     var gamesDto = gamesInMemory
-        .Select(game => new GameDetailDto(game.Id, game.RawgId, game.Title, game.Platforms.Select(p => p.ToString()).ToList(), game.HasPlayed, game.CoverImageUrl))
+        .Select(game => new GameDetailDto(
+            game.Id,
+            game.RawgId,
+            game.Title,
+            game.Platforms.Select(p => p.ToString()).ToList(),
+            game.HasPlayed,
+            game.CoverImageUrl,
+            game.Description,
+            game.ReleaseDate,
+            game.Genres,
+            game.Developers))
         .ToList();
 
     return Results.Ok(gamesDto);
 });
 
-app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id) =>
+app.MapGet("/api/mygames/{id}", async (GameVaultContext db, Guid id, IHttpClientFactory factory) =>
 {
-    var gameInMemory = await db.Games.FirstOrDefaultAsync(g => g.Id == id);
+    var game = await db.Games.FirstOrDefaultAsync(g => g.Id == id);
 
-    if (gameInMemory == null)
+    if (game == null)
         return Results.NotFound();
 
-    var game = new GameDetailDto(gameInMemory.Id, gameInMemory.RawgId, gameInMemory.Title, gameInMemory.Platforms.Select(p => p.ToString()).ToList(), gameInMemory.HasPlayed, gameInMemory.CoverImageUrl);
+    if (string.IsNullOrEmpty(game.Description))
+    {
+        var client = factory.CreateClient();
 
-    return Results.Ok(game);
+        if (game.RawgId == null)
+        {
+            var searchResponse = await client.GetFromJsonAsync<RawgSearchResponse>($"https://api.rawg.io/api/games?key={apiKey}&search={game.Title}");
+            var bestMatch = searchResponse?.Results?.FirstOrDefault();
+
+            if (bestMatch != null)
+            {
+                game.RawgId = bestMatch.Id;
+                if (string.IsNullOrEmpty(game.CoverImageUrl))
+                {
+                    game.CoverImageUrl = bestMatch.Background_image;
+                }
+            }
+        }
+
+        if (game.RawgId != null)
+        {
+            var detailResponse = await client.GetFromJsonAsync<RawgGameDetailResponse>($"https://api.rawg.io/api/games/{game.RawgId}?key={apiKey}");
+
+            if (detailResponse != null)
+            {
+                game.Description = detailResponse.Description_raw;
+                game.ReleaseDate = detailResponse.Released;
+                game.Genres = detailResponse.Genres?.Select(g => g.Name).ToList() ?? [];
+                game.Developers = detailResponse.Developers?.Select(d => d.Name).ToList() ?? [];
+            }
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    var dto = new GameDetailDto(
+        game.Id,
+        game.RawgId,
+        game.Title,
+        game.Platforms.Select(p => p.ToString()).ToList(),
+        game.HasPlayed,
+        game.CoverImageUrl,
+        game.Description,
+        game.ReleaseDate,
+        game.Genres,
+        game.Developers);
+
+    return Results.Ok(dto);
 });
 
 app.MapGet("/api/search/{title}", async (string title, IHttpClientFactory factory) =>
@@ -102,13 +157,27 @@ app.MapPost("/api/mygames", async (CreateGameDto dto, GameVaultContext db) =>
         Title = dto.Title,
         Platforms = dto.Platforms,
         HasPlayed = dto.HasPlayed,
-        CoverImageUrl = dto.CoverImageUrl
+        CoverImageUrl = dto.CoverImageUrl,
+        Description = null,
+        ReleaseDate = null,
+        Genres = [],
+        Developers = []
     };
 
     db.Games.Add(newGame);
     await db.SaveChangesAsync();
 
-    var responseDto = new GameDetailDto(newGame.Id, newGame.RawgId, newGame.Title, newGame.Platforms.Select(p => p.ToString()).ToList(), newGame.HasPlayed, newGame.CoverImageUrl);
+    var responseDto = new GameDetailDto(
+        newGame.Id,
+        newGame.RawgId,
+        newGame.Title,
+        newGame.Platforms.Select(p => p.ToString()).ToList(),
+        newGame.HasPlayed,
+        newGame.CoverImageUrl,
+        newGame.Description,
+        newGame.ReleaseDate,
+        newGame.Genres,
+        newGame.Developers);
 
     return Results.Ok(responseDto);
 });
@@ -167,7 +236,11 @@ app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFacto
                     Title = steamGame.Name,
                     Platforms = [GamingPlatform.Steam],
                     HasPlayed = steamGame.Playtime_forever > 0,
-                    CoverImageUrl = $"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{steamGame.Appid}/library_600x900_2x.jpg"
+                    CoverImageUrl = $"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{steamGame.Appid}/library_600x900_2x.jpg",
+                    Description = null,
+                    ReleaseDate = null,
+                    Genres = [],
+                    Developers = []
                 };
                 db.Games.Add(newGame);
             }
@@ -176,7 +249,7 @@ app.MapPost("/api/sync/steam/{steamId}", async (string steamId, IHttpClientFacto
                 var existingGame = db.Games.First(g => g.Title == steamGame.Name && g.Platforms.Contains(GamingPlatform.Steam));
                 bool isPlayedOnSteam = steamGame.Playtime_forever > 0;
 
-                if (existingGame.HasPlayed != isPlayedOnSteam)
+                if (existingGame.HasPlayed != isPlayedOnSteam || string.IsNullOrEmpty(existingGame.CoverImageUrl))
                 {
                     existingGame.HasPlayed = isPlayedOnSteam;
 
