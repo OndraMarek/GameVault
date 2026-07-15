@@ -148,20 +148,47 @@ app.MapGet("/api/search/{title}", async (string title, IHttpClientFactory factor
     return Results.Ok(result?.Results);
 });
 
-app.MapPost("/api/mygames", async (CreateGameDto dto, GameVaultContext db) =>
+app.MapPost("/api/mygames", async (CreateGameDto dto, GameVaultContext db, IHttpClientFactory factory) =>
 {
+    var client = factory.CreateClient();
+
+    int? rawgId = null;
+    string? coverUrl = null;
+    string? description = null;
+    string? releaseDate = null;
+    List<string> genres = [];
+    List<string> developers = [];
+
+    var searchResponse = await client.GetFromJsonAsync<RawgSearchResponse>($"https://api.rawg.io/api/games?key={apiKey}&search={dto.Title}");
+    var bestMatch = searchResponse?.Results.FirstOrDefault();
+
+    if (bestMatch != null)
+    {
+        rawgId = bestMatch.Id;
+        coverUrl = bestMatch.Background_image;
+
+        var detailResponse = await client.GetFromJsonAsync<RawgGameDetailResponse>($"https://api.rawg.io/api/games/{rawgId}?key={apiKey}");
+        if (detailResponse != null)
+        {
+            description = detailResponse.Description_raw;
+            releaseDate = detailResponse.Released;
+            genres = detailResponse.Genres?.Select(g => g.Name).ToList() ?? [];
+            developers = detailResponse.Developers?.Select(d => d.Name).ToList() ?? [];
+        }
+    }
+
     OwnedGame newGame = new()
     {
         Id = Guid.NewGuid(),
-        RawgId = null,
+        RawgId = rawgId,
         Title = dto.Title,
         Platforms = dto.Platforms,
         HasPlayed = dto.HasPlayed,
-        CoverImageUrl = dto.CoverImageUrl,
-        Description = null,
-        ReleaseDate = null,
-        Genres = [],
-        Developers = []
+        CoverImageUrl = coverUrl,
+        Description = description,
+        ReleaseDate = releaseDate,
+        Genres = genres,
+        Developers = developers
     };
 
     db.Games.Add(newGame);

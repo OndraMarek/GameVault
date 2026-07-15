@@ -43,55 +43,37 @@ function GameFormModal({
       .map((p) => p.trim())
       .filter((p) => p !== '');
 
-    if (initialData) {
-      try {
-        const response = await fetch(
-          `https://localhost:7154/api/mygames/${initialData.id}`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              RawgId: initialData.rawgId || null,
-              Title: title,
-              Platforms: platformArray,
-              hasPlayed: hasPlayed,
-              CoverImageUrl: coverUrl,
-            }),
-          },
-        );
+    const isEditing = !!initialData;
 
-        if (response.ok) {
-          onSaveSuccess();
-          onClose();
-        }
-      } catch (error) {
-        console.error('Failed to connect to backend:', error);
-      }
-    } else {
-      try {
-        const response = await fetch(`https://localhost:7154/api/mygames`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            RawgId: null,
-            Title: title,
-            Platforms: platformArray,
-            HasPlayed: hasPlayed,
-            CoverImageUrl: coverUrl,
-          }),
-        });
+    const url = isEditing
+      ? `https://localhost:7154/api/mygames/${initialData.id}`
+      : `https://localhost:7154/api/mygames`;
 
-        if (response.ok) {
-          onSaveSuccess();
-          onClose();
-        }
-      } catch (error) {
-        console.error('Failed to connect to backend:', error);
+    const method = isEditing ? 'PUT' : 'POST';
+
+    const requestBody = {
+      RawgId: initialData?.rawgId || null,
+      Title: title,
+      Platforms: platformArray,
+      HasPlayed: hasPlayed,
+      CoverImageUrl: coverUrl,
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.ok) {
+        onSaveSuccess();
+        onClose();
       }
+    } catch (error) {
+      console.error('Failed to connect to backend:', error);
     }
   };
 
@@ -124,25 +106,27 @@ function GameFormModal({
             />
           </label>
 
-          <label className="flex flex-col text-sm font-medium">
-            HasPlayed:
+          <label className="flex flex-row items-center gap-2 text-sm font-medium cursor-pointer">
             <input
               type="checkbox"
               checked={hasPlayed}
               onChange={(e) => setHasPlayed(e.target.checked)}
-              className="mt-1 p-2 rounded bg-sky-950 border border-sky-700 focus:outline-none focus:border-cyan-400"
+              className="w-4 h-4 rounded bg-sky-950 border border-sky-700 focus:outline-none focus:border-cyan-400"
             />
+            Has Played
           </label>
 
-          <label className="flex flex-col text-sm font-medium">
-            Cover Image URL:
-            <input
-              type="text"
-              value={coverUrl}
-              onChange={(e) => setCoverUrl(e.target.value)}
-              className="mt-1 p-2 rounded bg-sky-950 border border-sky-700 focus:outline-none focus:border-cyan-400"
-            />
-          </label>
+          {initialData && (
+            <label className="flex flex-col text-sm font-medium">
+              Cover Image URL:
+              <input
+                type="text"
+                value={coverUrl}
+                onChange={(e) => setCoverUrl(e.target.value)}
+                className="mt-1 p-2 rounded bg-sky-950 border border-sky-700 focus:outline-none focus:border-cyan-400"
+              />
+            </label>
+          )}
 
           <div className="mt-6 flex justify-end gap-3">
             <button
