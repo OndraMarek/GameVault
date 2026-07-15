@@ -8,6 +8,10 @@ export interface GameDetailDto {
   platformNames: string[];
   hasPlayed: boolean;
   coverImageUrl?: string;
+  description?: string;
+  releaseDate?: string;
+  genres?: string[];
+  developers?: string[];
 }
 
 function GameDetailPage() {
@@ -36,19 +40,29 @@ function GameDetailPage() {
   if (!game) return <div>Loading game details...</div>;
 
   return (
-    <div
-      className="relative text-black text-3xl text-center p-50 bg-cover bg-center min-h-[400px] flex flex-col justify-center"
-      style={{ backgroundImage: `url(${game.coverImageUrl})` }}
-    >
-      <Link
-        to={`/`}
-        className="absolute top-4 left-4 bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-2 transition-colors"
+    <div>
+      <div
+        className="relative text-black text-3xl text-center p-50 bg-cover bg-center min-h-[400px] flex flex-col justify-center"
+        style={{ backgroundImage: `url(${game.coverImageUrl})` }}
       >
-        Home
-      </Link>
-      <h1 className="text-5xl font-bold text-white text-shadow-lg/30">
-        {game.title}
-      </h1>
+        <Link
+          to={`/`}
+          className="absolute top-4 left-4 bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-2 transition-colors"
+        >
+          Home
+        </Link>
+        <h1 className="text-5xl font-bold text-white text-shadow-lg/30">
+          {game.title}
+        </h1>
+      </div>
+      <div>
+        <p>{game.platformNames.join(', ')}</p>
+        <p>{game.hasPlayed ? 'yes' : 'no'}</p>
+        <p>{game.description}</p>
+        <p>{game.releaseDate}</p>
+        <p>{game.genres ? game.genres.join(', ') : ''}</p>
+        <p>{game.developers ? game.developers.join(', ') : ''}</p>
+      </div>
     </div>
   );
 }
